@@ -45,7 +45,7 @@ if (process.env.CORS) {
 // Initialize routes middleware
 app.use('/api/users', require('./routes/users'));
 app.use('/api/posts', require('./routes/posts'));
-app.use('/api/onegramstopwords', require('./routes/onegramstopwords'));
+app.use('/api/twogramstopwords', require('./routes/twogramstopwords'));
 
 // Use express's default error handling middleware
 app.use((err, req, res, next) => {
