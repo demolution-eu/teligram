@@ -29,23 +29,6 @@ a.social-link:hover {
   to { transform: rotate(360deg); }
 }
 
-#online {
-  margin-left: 10px;
-}
-
-.shirts {
-  opacity: .75;
-}
-
-.shirts:hover {
-  opacity: 1;
-}
-
-a.shirts {
-  color: #ccc;
-  font-size: 13px;
-}
-
-.shirts img {
-  height: 40px;
+.ui.page.modals.transition.visible {
+    display: flex !important;
 }

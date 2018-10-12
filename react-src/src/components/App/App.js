@@ -3,11 +3,10 @@ import { Container } from 'semantic-ui-react';
 import axios from 'axios';
 import io from 'socket.io-client';
 
-import TableUser from '../TableUser/TableUser';
-import ModalUser from '../ModalUser/ModalUser';
+import TablePost from '../TablePost/TablePost';
+import FormPost from '../FormPost/FormPost';
 
 import logo from '../../logo.svg';
-import shirts from '../../shirts.png';
 import './App.css';
 
 class App extends Component {
@@ -19,61 +18,88 @@ class App extends Component {
     this.socket = io.connect(this.server);
 
     this.state = {
-      users: [],
+      posts: [],
+      twogramstopwords: [],
       online: 0
     }
 
-    this.fetchUsers = this.fetchUsers.bind(this);
-    this.handleUserAdded = this.handleUserAdded.bind(this);
-    this.handleUserUpdated = this.handleUserUpdated.bind(this);
-    this.handleUserDeleted = this.handleUserDeleted.bind(this);
+    this.fetchPosts = this.fetchPosts.bind(this);
+    this.fetchTwogramstopwords = this.fetchTwogramstopwords.bind(this);
+    this.readNewPost = this.readNewPost.bind(this);
+    this.handlePostAdded = this.handlePostAdded.bind(this);
+    this.handlePostUpdated = this.handlePostUpdated.bind(this);
+    this.handlePostDeleted = this.handlePostDeleted.bind(this);
   }
 
   // Place socket.io code inside here
   componentDidMount() {
-    this.fetchUsers();
+    this.fetchPosts();
+    this.fetchTwogramstopwords();
     this.socket.on('visitor enters', data => this.setState({ online: data }));
     this.socket.on('visitor exits', data => this.setState({ online: data }));
-    this.socket.on('add', data => this.handleUserAdded(data));
-    this.socket.on('update', data => this.handleUserUpdated(data));
-    this.socket.on('delete', data => this.handleUserDeleted(data));
+    this.socket.on('add', data => this.handlePostAdded(data));
+    this.socket.on('update', data => this.handlePostUpdated(data));
+    this.socket.on('delete', data => this.handlePostDeleted(data));
   }
 
   // Fetch data from the back-end
-  fetchUsers() {
-    axios.get(`${this.server}/api/users/`)
+  fetchPosts() {
+    axios.get(`${this.server}/api/posts/`)
     .then((response) => {
-      this.setState({ users: response.data });
+      this.setState({ posts: response.data });
     })
     .catch((err) => {
       console.log(err);
     });
   }
 
-  handleUserAdded(user) {
-    let users = this.state.users.slice();
-    users.push(user);
-    this.setState({ users: users });
+  // Fetch data from the back-end
+  fetchTwogramstopwords() {
+    axios.get(`${this.server}/api/twogramstopwords/`)
+    .then((response) => {
+      this.setState({ twogramstopwords: response.data });
+    })
+    .catch((err) => {
+      console.log(err);
+    });
   }
 
-  handleUserUpdated(user) {
-    let users = this.state.users.slice();
-    for (let i = 0, n = users.length; i < n; i++) {
-      if (users[i]._id === user._id) {
-        users[i].name = user.name;
-        users[i].email = user.email;
-        users[i].age = user.age;
-        users[i].gender = user.gender;
+  handlePostAdded(post) {
+    let posts = this.state.posts.slice();
+    console.log("newest post: ");
+    console.log(post);
+    this.readNewPost(post.text);
+    posts.push(post);
+    this.setState({ posts: posts });
+  }
+
+  readNewPost(text) {
+    var msg = new SpeechSynthesisUtterance(text);
+    var voices = window.speechSynthesis.getVoices();
+    msg.lang = 'de-DE'
+    msg.rate = 0.7;
+    msg.pitch = Math.random();
+    window.speechSynthesis.speak(msg);
+  }
+
+  handlePostUpdated(post) {
+    let posts = this.state.posts.slice();
+    for (let i = 0, n = posts.length; i < n; i++) {
+      if (posts[i]._id === post._id) {
+        posts[i].name = post.name;
+        posts[i].email = post.email;
+        posts[i].age = post.age;
+        posts[i].gender = post.gender;
         break; // Stop this loop, we found it!
       }
     }
-    this.setState({ users: users });
+    this.setState({ posts: posts });
   }
 
-  handleUserDeleted(user) {
-    let users = this.state.users.slice();
-    users = users.filter(u => { return u._id !== user._id; });
-    this.setState({ users: users });
+  handlePostDeleted(post) {
+    let posts = this.state.posts.slice();
+    posts = posts.filter(u => { return u._id !== post._id; });
+    this.setState({ posts: posts });
   }
 
   render() {
@@ -81,39 +107,24 @@ class App extends Component {
     let online = this.state.online;
     let verb = (online <= 1) ? 'is' : 'are'; // linking verb, if you'd prefer
     let noun = (online <= 1) ? 'person' : 'people';
-
     return (
       <div>
-        <div className='App'>
-          <div className='App-header'>
-            <img src={logo} className='App-logo' alt='logo' />
-            <h1 className='App-intro'>MERN CRUD</h1>
-            <p>A simple records system using MongoDB, Express.js, React.js, and Node.js with real-time Create, Read, Update, and Delete operations using Socket.io.</p>
-            <p>REST API was implemented on the back-end. Semantic UI React was used for the UI.</p>
-            <p>
-              <a className='social-link' href='https://github.com/cefjoeii' target='_blank' rel='noopener noreferrer'>GitHub</a> &bull; <a className='social-link' href='https://linkedin.com/in/cefjoeii' target='_blank' rel='noopener noreferrer'>LinkedIn</a> &bull; <a className='social-link' href='https://twitter.com/cefjoeii' target='_blank' rel='noopener noreferrer'>Twitter</a>
-            </p>
-            <a className='shirts' href='https://www.teepublic.com/user/codeweario' target='_blank' rel='noopener noreferrer'>
-              <img src={shirts} alt='Programmer Shirts' />
-              <span>Ad</span>
-            </a>
-          </div>
-        </div>
         <Container>
-          <ModalUser
-            headerTitle='Add User'
-            buttonTriggerTitle='Add New'
-            buttonSubmitTitle='Add'
-            buttonColor='green'
-            onUserAdded={this.handleUserAdded}
+          <FormPost
+            buttonSubmitTitle='Post'
+            buttonColor={this.props.buttonColor}
+            postID={this.props.postID}
+            onPostAdded={this.handlePostAdded}
+            onPostUpdated={this.props.onPostUpdated}
             server={this.server}
             socket={this.socket}
           />
+
           <em id='online'>{`${online} ${noun} ${verb} online.`}</em>
-          <TableUser
-            onUserUpdated={this.handleUserUpdated}
-            onUserDeleted={this.handleUserDeleted}
-            users={this.state.users}
+          <TablePost
+            onPostUpdated={this.handlePostUpdated}
+            onPostDeleted={this.handlePostDeleted}
+            posts={this.state.posts}
             server={this.server}
             socket={this.socket}
           />
