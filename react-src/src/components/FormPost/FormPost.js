@@ -1,4 +1,4 @@
-twogramimport React, { Component } from 'react';
+import React, { Component } from 'react';
 import { Message, Button, Form, Select } from 'semantic-ui-react';
 import axios from 'axios';
 import horsey from 'horsey';
