@@ -1,8 +1,9 @@
 .App-header {
-  background-color: #222;
+  background-color: #009DE3;
+  /* background-color: #036; */
   color: #fff;
-  margin-bottom: 25px;
-  padding: 25px 25px 30px;
+  margin-bottom: 50px;
+  padding: 150px 25px 130px;
   text-align: center;
 }
 
@@ -31,4 +32,18 @@ a.social-link:hover {
 
 .ui.page.modals.transition.visible {
     display: flex !important;
+}
+
+.ui.menu{
+  background-color:#036;
+  color:#fff;
+  box-shadow: none;
+}
+.ui.menu .item,
+.ui.link.menu .item:hover, .ui.menu .dropdown.item:hover, .ui.menu .link.item:hover, .ui.menu a.item:hover{
+  color:#fff;
+}
+.ui.menu .header.item, .ui.vertical.menu .header.item{
+  letter-spacing: 0.02rem;
+  font-weight: 400;
 }

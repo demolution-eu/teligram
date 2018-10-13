@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Table } from 'semantic-ui-react';
+import { Card, Icon } from 'semantic-ui-react';
 
 import ModalConfirmDelete from '../ModalConfirmDelete/ModalConfirmDelete';
 
@@ -9,37 +9,30 @@ class TablePost extends Component {
 
     let posts = this.props.posts;
     posts = posts.map((post) =>
-      <Table.Row key={post._id}>
-        <Table.Cell>{post.text}</Table.Cell>
-        <Table.Cell>
-          <ModalConfirmDelete
-            headerTitle='Delete Post'
-            buttonTriggerTitle='Delete'
-            buttonColor='black'
-            post={post}
-            onPostDeleted={this.props.onPostDeleted}
-            server={this.props.server}
-            socket={this.props.socket}
-          />
-        </Table.Cell>
-      </Table.Row>
+      <Card fluid key={post._id}>
+        <Card.Content>
+          <Card.Header>{post._id}</Card.Header>
+          <Card.Meta>
+            <span className='date'>Joined in 2015</span>
+          </Card.Meta>
+          <Card.Description>{post.text}</Card.Description>
+        </Card.Content>
+        <Card.Content extra>
+          <a>
+            <Icon name='user' />
+            22 Friends
+          </a>
+        </Card.Content>
+      </Card>
     );
 
     // Make every new post appear on top of the list
     posts =  [...posts].reverse();
 
     return (
-      <Table singleLine>
-        <Table.Header>
-          <Table.Row>
-            <Table.HeaderCell>Text</Table.HeaderCell>
-            <Table.HeaderCell>Actions</Table.HeaderCell>
-          </Table.Row>
-        </Table.Header>
-        <Table.Body>
-          {posts}
-        </Table.Body>
-      </Table>
+      <Card.Group>
+        {posts}
+      </Card.Group>
     );
   }
 }

@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Container } from 'semantic-ui-react';
+import { Dropdown, Menu, Sticky, Grid, Container } from 'semantic-ui-react';
 import axios from 'axios';
 import io from 'socket.io-client';
 
@@ -9,6 +9,10 @@ import FormPost from '../FormPost/FormPost';
 import logo from '../../logo.svg';
 import './App.css';
 
+// import '../../pixi.js';
+// import '../../noiseShader.js';
+// import '../../Noise.js';
+
 class App extends Component {
 
   constructor() {
@@ -16,11 +20,12 @@ class App extends Component {
 
     this.server = process.env.REACT_APP_API_URL || '';
     this.socket = io.connect(this.server);
+    this.buttonColor = "blue";
 
     this.state = {
       posts: [],
       twogramstopwords: [],
-      online: 0
+      online: 0,
     }
 
     this.fetchPosts = this.fetchPosts.bind(this);
@@ -102,33 +107,65 @@ class App extends Component {
     this.setState({ posts: posts });
   }
 
-  render() {
+  handleContextRef = contextRef => this.setState({ contextRef })
 
+  render() {
+    const { contextRef } = this.state
     let online = this.state.online;
     let verb = (online <= 1) ? 'is' : 'are'; // linking verb, if you'd prefer
     let noun = (online <= 1) ? 'person' : 'people';
     return (
-      <div>
-        <Container>
-          <FormPost
-            buttonSubmitTitle='Post'
-            buttonColor={this.props.buttonColor}
-            postID={this.props.postID}
-            onPostAdded={this.handlePostAdded}
-            onPostUpdated={this.props.onPostUpdated}
-            server={this.server}
-            socket={this.socket}
-          />
+      <div ref={this.handleContextRef}>
+        <div className='App'>
+        <Menu fixed='top' stackable>
+          <Container>
+            <Menu.Item as='a' header>
+              Teligram<span style={{color: 'rgb(225, 0, 0)'}}>.</span>
+            </Menu.Item>
+            <Menu.Item as='a'>Home</Menu.Item>
 
-          <em id='online'>{`${online} ${noun} ${verb} online.`}</em>
-          <TablePost
-            onPostUpdated={this.handlePostUpdated}
-            onPostDeleted={this.handlePostDeleted}
-            posts={this.state.posts}
-            server={this.server}
-            socket={this.socket}
-          />
-        </Container>
+            <Dropdown item simple text='Account'>
+              <Dropdown.Menu>
+                <Dropdown.Item>Log in</Dropdown.Item>
+                <Dropdown.Item>Sign up</Dropdown.Item>
+              </Dropdown.Menu>
+            </Dropdown>
+          </Container>
+        </Menu>
+
+          <div className='App-header'>
+            <h1 className='App-intro'>Teligram<span style={{color: 'rgb(225, 0, 0)'}}>.</span></h1>
+          </div>
+        </div>
+        <Container>
+          <Grid stackable columns={2} divided>
+            <Grid.Row>
+              <Grid.Column>
+                <Sticky context={contextRef}>
+                  <FormPost
+                    buttonSubmitTitle='Gram'
+                    buttonColor='red'
+                    postID={this.props.postID}
+                    onPostAdded={this.handlePostAdded}
+                    onPostUpdated={this.props.onPostUpdated}
+                    server={this.server}
+                    socket={this.socket}
+                  />
+                </Sticky>
+              </Grid.Column>
+
+              <Grid.Column>
+                <TablePost
+                  onPostUpdated={this.handlePostUpdated}
+                  onPostDeleted={this.handlePostDeleted}
+                  posts={this.state.posts}
+                  server={this.server}
+                  socket={this.socket}
+                />
+                </Grid.Column>
+              </Grid.Row>
+            </Grid>
+          </Container>
         <br/>
       </div>
     );

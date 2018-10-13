@@ -158,12 +158,11 @@ class FormPost extends Component {
     const formErrorMessage = this.state.formErrorMessage;
 
     return (
-      <Form className={formClassName} onSubmit={this.handleSubmit}>
+      <Form id='stickyform' className={formClassName} onSubmit={this.handleSubmit}>
         <Form.TextArea
           id='ed'
-          label='Post'
           type='text'
-          placeholder='Tell us more about you...'
+          placeholder="Guten Morgen"
           name='post'
           maxLength='140'
           required
