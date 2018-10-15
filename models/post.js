@@ -17,6 +17,9 @@ const PostSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Text is required.'],
     validate: textValidator
+  },
+  username: {
+    type: String
   }
 });
 

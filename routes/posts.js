@@ -43,9 +43,10 @@ router.get('/', (req, res) => {
 router.post('/', postLimiter, (req, res) => {
 
   let newPost = new Post({
+    username: sanitizeText(req.body.username),
     text: sanitizeText(req.body.text)
   });
-
+  console.log(req.body);
   newPost.save()
     .then((result) => {
       res.json({
@@ -53,7 +54,8 @@ router.post('/', postLimiter, (req, res) => {
         msg: `Successfully added!`,
         result: {
           _id: result._id,
-          text: result.text
+          text: result.text,
+          username: result.username
         }
       });
     })

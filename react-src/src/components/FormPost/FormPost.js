@@ -1,15 +1,9 @@
 import React, { Component } from 'react';
-import { Message, Button, Form, Select } from 'semantic-ui-react';
+import { Button, Form } from 'semantic-ui-react';
 import axios from 'axios';
 import horsey from 'horsey';
 
 import './FormPost.css';
-
-const genderOptions = [
-  { key: 'm', text: 'Male', value: 'm' },
-  { key: 'f', text: 'Female', value: 'f' },
-  { key: 'o', text: 'Do Not Disclose', value: 'o' }
-]
 
 class FormPost extends Component {
 
@@ -29,7 +23,6 @@ class FormPost extends Component {
   }
 
   componentDidMount() {
-    console.log(this);
     this.horst(this);
   }
 
@@ -64,7 +57,7 @@ class FormPost extends Component {
               axios.get(`${self.props.server}/api/twogramstopwords/${data.input[1]}`)
               .then((response) => {
                 for (var twogram in response.data){
-                  if (typeof(response.data[twogram].word) == "number") {
+                  if (typeof(response.data[twogram].word) === "number") {
                       response.data.splice(twogram, 1);
                   }
                   response.data[twogram].value = " " + response.data[twogram].word;
@@ -98,11 +91,11 @@ class FormPost extends Component {
   handleSubmit(e) {
     // Prevent browser refresh
     e.preventDefault();
-
     const post = {
+      username: this.props.user.name,
       text: this.state.post
     }
-
+    console.log(post);
     // Acknowledge that if the post id is provided, we're updating via PUT
     // Otherwise, we're creating a new data via POST
     const method = this.props.postID ? 'put' : 'post';
@@ -154,11 +147,9 @@ class FormPost extends Component {
   render() {
 
     const formClassName = this.state.formClassName;
-    const formSuccessMessage = this.state.formSuccessMessage;
-    const formErrorMessage = this.state.formErrorMessage;
 
     return (
-      <Form id='stickyform' className={formClassName} onSubmit={this.handleSubmit}>
+      <Form className={formClassName} onSubmit={this.handleSubmit}>
         <Form.TextArea
           id='ed'
           type='text'

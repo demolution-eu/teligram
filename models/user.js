@@ -2,6 +2,10 @@ const mongoose = require('mongoose');
 const unique = require('mongoose-unique-validator');
 const validate = require('mongoose-validator');
 
+const passwordValidator = [
+
+];
+
 const nameValidator = [
   validate({
     validator: 'isLength',
@@ -37,19 +41,16 @@ const UserSchema = new mongoose.Schema({
     required: [true, 'Name is required.'],
     validate: nameValidator
   },
+  password: {
+    type: String,
+    required: [true, 'Password is required.'],
+    validate: passwordValidator
+  },
   email: {
     type: String,
     required: [true, 'Email is required.'],
     unique: true,
     validate: emailValidator
-  },
-  age: {
-    type: Number,
-    validate: ageValidator
-  },
-  gender: {
-    type: String,
-    validate: genderValidator
   }
 });
 

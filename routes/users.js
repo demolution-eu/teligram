@@ -10,61 +10,59 @@ const User = require('../models/user');
 const minutes = 5;
 const postLimiter = new RateLimit({
   windowMs: minutes * 60 * 1000, // milliseconds
-  max: 100, // Limit each IP to 100 requests per windowMs 
-  delayMs: 0, // Disable delaying - full speed until the max limit is reached 
+  max: 100, // Limit each IP to 100 requests per windowMs
+  delayMs: 0, // Disable delaying - full speed until the max limit is reached
   handler: (req, res) => {
     res.status(429).json({ success: false, msg: `You made too many requests. Please try again after ${minutes} minutes.` });
   }
 });
 
-// READ (ONE)
-router.get('/:id', (req, res) => {
-  User.findById(req.params.id)
+// Get User
+router.post('/:email', (req, res) => {
+  User.find({email: req.params.email})
     .then((result) => {
-      res.json(result);
-    })
-    .catch((err) => {
-      res.status(404).json({ success: false, msg: `No such user.` });
-    });
-});
-
-// READ (ALL)
-router.get('/', (req, res) => {
-  User.find({})
-    .then((result) => {
-      res.json(result);
+      if(req.body.password === result[0].password) {
+        console.log(req.body.password);
+        console.log(result[0].password);
+        let user = {
+          _id : result[0]._id,
+          name : result[0].name,
+          email : result[0].email
+        }
+        res.json({
+          success: true,
+          user: user
+        });
+      } else {
+        res.status(403).json({
+          success: false,
+          msg: `Falsches Passwort` });
+      }
     })
     .catch((err) => {
       res.status(500).json({ success: false, msg: `Something went wrong. ${err}` });
     });
 });
 
-// CREATE
+
+// Register User
 router.post('/', postLimiter, (req, res) => {
-
-  // Validate the age
-  let age = sanitizeAge(req.body.age);
-  if (age < 5 && age != '') return res.status(403).json({ success: false, msg: `You're too young for this.` });
-  else if (age > 130 && age != '') return res.status(403).json({ success: false, msg: `You're too old for this.` });
-
+  console.log('register new user');
   let newUser = new User({
     name: sanitizeName(req.body.name),
     email: sanitizeEmail(req.body.email),
-    age: sanitizeAge(req.body.age),
-    gender: sanitizeGender(req.body.gender)
+    password: sanitizePassword(req.body.password)
   });
-
   newUser.save()
     .then((result) => {
+      console.log(result);
       res.json({
         success: true,
         msg: `Successfully added!`,
-        result: {
+        user: {
           _id: result._id,
-          name: result.name,
           email: result.email,
-          age: result.age,
-          gender: result.gender
+          name: result.name
         }
       });
     })
@@ -188,7 +186,7 @@ sanitizeAge = (age) => {
   if (isNaN(age) && age != '') return '';
   return (age === '') ? age : parseInt(age);
 }
-sanitizeGender = (gender) => {
+sanitizePassword = (password) => {
   // Return empty if it's neither of the two
-  return (gender === 'm' || gender === 'f') ? gender : '';
+  return password;
 }

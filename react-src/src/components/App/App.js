@@ -1,17 +1,14 @@
 import React, { Component } from 'react';
-import { Dropdown, Menu, Sticky, Grid, Container } from 'semantic-ui-react';
+import { Grid, Container } from 'semantic-ui-react';
 import axios from 'axios';
 import io from 'socket.io-client';
 
+import Header from '../Header/Header'
+import Login from '../Login/Login'
 import TablePost from '../TablePost/TablePost';
 import FormPost from '../FormPost/FormPost';
 
-import logo from '../../logo.svg';
 import './App.css';
-
-// import '../../pixi.js';
-// import '../../noiseShader.js';
-// import '../../Noise.js';
 
 class App extends Component {
 
@@ -26,6 +23,9 @@ class App extends Component {
       posts: [],
       twogramstopwords: [],
       online: 0,
+      menuFixed: false,
+      overlayFixed: false,
+      user: []
     }
 
     this.fetchPosts = this.fetchPosts.bind(this);
@@ -34,6 +34,10 @@ class App extends Component {
     this.handlePostAdded = this.handlePostAdded.bind(this);
     this.handlePostUpdated = this.handlePostUpdated.bind(this);
     this.handlePostDeleted = this.handlePostDeleted.bind(this);
+    this.handleUserAdded = this.handleUserAdded.bind(this);
+    this.handleLogout = this.handleLogout.bind(this)
+		this.handleLogin = this.handleLogin.bind(this)
+    this.handleSubmit = this.handleSubmit.bind(this)
   }
 
   // Place socket.io code inside here
@@ -73,14 +77,22 @@ class App extends Component {
     let posts = this.state.posts.slice();
     console.log("newest post: ");
     console.log(post);
-    this.readNewPost(post.text);
+    this.readNewPost(post);
     posts.push(post);
     this.setState({ posts: posts });
   }
 
-  readNewPost(text) {
-    var msg = new SpeechSynthesisUtterance(text);
-    var voices = window.speechSynthesis.getVoices();
+  handleUserAdded(user) {
+    console.log('App.js: handleUserAdded');
+    // user.push(user);
+    this.setState({ user: user });
+    console.log(this.state);
+  }
+
+  readNewPost(post) {
+    console.log(post);
+    let sentence = post.text+'. Sagt '+post.username;
+    var msg = new SpeechSynthesisUtterance(sentence);
     msg.lang = 'de-DE'
     msg.rate = 0.7;
     msg.pitch = Math.random();
@@ -107,68 +119,195 @@ class App extends Component {
     this.setState({ posts: posts });
   }
 
-  handleContextRef = contextRef => this.setState({ contextRef })
+  handleLogout(event) {
+		event.preventDefault()
+		console.log('logging out')
+		axios.post('/auth/logout').then(response => {
+			console.log(response.data)
+			if (response.status === 200) {
+				this.setState({
+					loggedIn: false,
+					user: null
+				})
+			}
+		})
+	}
+
+  handleSubmit(e) {
+    console.log('handlesubmit');
+    // Prevent browser refresh
+    e.preventDefault();
+    const user = {
+      name: this.state.user.name,
+      email: this.state.user.email,
+      password: this.state.user.password
+    }
+    // Acknowledge that if the user id is provided, we're updating via PUT
+    // Otherwise, we're creating a new data via POST
+    const method = 'post';
+    const params = '';
+
+    console.log(user);
+
+    axios({
+      method: method,
+      responseType: 'json',
+      url: `${this.server}/api/users/${params}`,
+      data: user
+    })
+    .then((response) => {
+      this.setState({
+        formClassName: 'success',
+        formSuccessMessage: response.data.msg,
+        loggedIn: true,
+				user: response.data.user
+      });
+      if (!this.props.userID) {
+        this.setState({
+          user: response.data.user
+        });
+        console.log(this.state);
+        this.props.onUserAdded(response.data.user);
+      }
+      else {
+        this.props.onUserUpdated(response.data.user);
+        this.props.socket.emit('update', response.data.user);
+      }
+
+    })
+    .catch((err) => {
+      if (err.response) {
+        if (err.response.data) {
+          this.setState({
+            formClassName: 'warning',
+            formErrorMessage: err.response.data.msg
+          });
+        }
+      }
+      else {
+        this.setState({
+          formClassName: 'warning',
+          formErrorMessage: 'Something went wrong. ' + err
+        });
+      }
+    });
+  }
+
+  handleLogin(e) {
+    console.log('handlelogin');
+    // Prevent browser refresh
+    e.preventDefault();
+    const user = {
+      name: this.state.user.name,
+      email: this.state.user.email,
+      password: this.state.user.password
+    }
+    // this.state.user.email = "";
+    // Acknowledge that if the user id is provided, we're updating via PUT
+    // Otherwise, we're creating a new data via POST
+    const method = 'post';
+    const params = this.state.user.email;
+    delete this.state.user.email;
+    delete this.state.user.name;
+    delete this.state.user.password;
+    axios({
+      method: method,
+      responseType: 'json',
+      url: `${this.server}/api/users/${params}`,
+      data: user
+    })
+    .then((response) => {
+      this.setState({
+        formClassName: 'success',
+        formSuccessMessage: response.data.msg,
+        loggedIn: true,
+				user: response.data.user
+      });
+      if (!this.props.userID) {
+        this.setState({
+          user: response.data.user
+        });
+        this.props.onUserAdded(response.data.user);
+      }
+      else {
+        this.props.onUserUpdated(response.data.user);
+        this.props.socket.emit('update', response.data.user);
+      }
+
+    })
+    .catch((err) => {
+      if (err.response) {
+        if (err.response.data) {
+          console.log(err.response.data);
+          this.setState({
+            formClassName: 'warning',
+            formErrorMessage: err.response.data.msg
+          });
+        }
+      }
+      else {
+        this.setState({
+          formClassName: 'warning',
+          formErrorMessage: 'Something went wrong. ' + err
+        });
+      }
+    });
+  }
+
 
   render() {
-    const { contextRef } = this.state
-    let online = this.state.online;
-    let verb = (online <= 1) ? 'is' : 'are'; // linking verb, if you'd prefer
-    let noun = (online <= 1) ? 'person' : 'people';
-    return (
-      <div ref={this.handleContextRef}>
-        <div className='App'>
-        <Menu fixed='top' stackable>
-          <Container>
-            <Menu.Item as='a' header>
-              Teligram<span style={{color: 'rgb(225, 0, 0)'}}>.</span>
-            </Menu.Item>
-            <Menu.Item as='a'>Home</Menu.Item>
-
-            <Dropdown item simple text='Account'>
-              <Dropdown.Menu>
-                <Dropdown.Item>Log in</Dropdown.Item>
-                <Dropdown.Item>Sign up</Dropdown.Item>
-              </Dropdown.Menu>
-            </Dropdown>
-          </Container>
-        </Menu>
-
-          <div className='App-header'>
-            <h1 className='App-intro'>Teligram<span style={{color: 'rgb(225, 0, 0)'}}>.</span></h1>
+    if(!this.state.user.email){
+      return (
+        <div>
+          <div className='App'>
+            <Header user={this.state.user} />
+            <Login
+              server={this.server}
+              handleSubmit={this.handleSubmit}
+              socket={this.socket}
+              user={this.state.user}
+              handleLogin={this.handleLogin}/>
           </div>
         </div>
-        <Container>
-          <Grid stackable columns={2} divided>
-            <Grid.Row>
-              <Grid.Column>
-                <Sticky context={contextRef}>
-                  <FormPost
-                    buttonSubmitTitle='Gram'
-                    buttonColor='red'
-                    postID={this.props.postID}
-                    onPostAdded={this.handlePostAdded}
-                    onPostUpdated={this.props.onPostUpdated}
-                    server={this.server}
-                    socket={this.socket}
-                  />
-                </Sticky>
-              </Grid.Column>
-
-              <Grid.Column>
-                <TablePost
-                  onPostUpdated={this.handlePostUpdated}
-                  onPostDeleted={this.handlePostDeleted}
-                  posts={this.state.posts}
-                  server={this.server}
-                  socket={this.socket}
-                />
-                </Grid.Column>
-              </Grid.Row>
-            </Grid>
-          </Container>
-        <br/>
-      </div>
-    );
+      );
+    } else {
+      return (
+        <div>
+          <div className='App'>
+            <Header user={this.state.user} />
+            <Container>
+              <Grid stackable columns={2} divided>
+                <Grid.Row>
+                  <Grid.Column>
+                    <FormPost
+                      buttonSubmitTitle='Gram'
+                      buttonColor='red'
+                      postID={this.props.postID}
+                      onPostAdded={this.handlePostAdded}
+                      onPostUpdated={this.props.onPostUpdated}
+                      server={this.server}
+                      socket={this.socket}
+                      user={this.state.user}
+                    />
+                  </Grid.Column>
+                  <Grid.Column>
+                      <TablePost
+                        onPostUpdated={this.handlePostUpdated}
+                        onPostDeleted={this.handlePostDeleted}
+                        posts={this.state.posts}
+                        server={this.server}
+                        socket={this.socket}
+                        user={this.state.user}
+                      />
+                  </Grid.Column>
+                  </Grid.Row>
+                </Grid>
+              </Container>
+            </div>
+          <br/>
+        </div>
+      );
+    }
   }
 }
 

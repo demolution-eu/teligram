@@ -1,12 +1,12 @@
 import React, { Component } from 'react';
 import { Button, Modal } from 'semantic-ui-react';
 
-import FormUser from '../FormUser/FormUser';
+import FormSignin from '../FormSignin/FormSignin';
 
-class ModalUser extends Component {
+class ModalSignin extends Component {
 
   render() {
-    return (
+    return(
       <Modal
         trigger={<Button color={this.props.buttonColor}>{this.props.buttonTriggerTitle}</Button>}
         dimmer='inverted'
@@ -15,12 +15,15 @@ class ModalUser extends Component {
       >
         <Modal.Header>{this.props.headerTitle}</Modal.Header>
         <Modal.Content>
-          <FormUser
+          <FormSignin
             buttonSubmitTitle={this.props.buttonSubmitTitle}
             buttonColor={this.props.buttonColor}
             userID={this.props.userID}
+            onSubmit={this.props.onSubmit}
             onUserAdded={this.props.onUserAdded}
-            onUserUpdated={this.props.onUserUpdated}
+            handleSubmit={this.props.handleSubmit}
+            handleLogin={this.props.handleLogin}
+            user={this.props.user}
             server={this.props.server}
             socket={this.props.socket}
           />
@@ -30,4 +33,4 @@ class ModalUser extends Component {
   }
 }
 
-export default ModalUser;
+export default ModalSignin;
