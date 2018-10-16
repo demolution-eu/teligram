@@ -8,6 +8,10 @@ import Login from '../Login/Login'
 import TablePost from '../TablePost/TablePost';
 import FormPost from '../FormPost/FormPost';
 
+import ReactGA from 'react-ga';
+ReactGA.initialize('UA-68381878-12');
+ReactGA.pageview(window.location.pathname + window.location.search);
+
 import './App.css';
 
 class App extends Component {
